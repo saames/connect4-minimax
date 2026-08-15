@@ -13,12 +13,29 @@ IA = 2
 def criar_tabuleiro():
     return [[VAZIO for _ in range(COLUNAS)] for _ in range(LINHAS)]
 
+ARQUIVO_JOGADOR = "jogadas_jogador.txt"
+ARQUIVO_IA = "jogadas_ia.txt"
+HISTORICO_JOGADOR = []
+HISTORICO_IA = []
+
 def imprimir_tabuleiro(tabuleiro):
+    # Representação visual na tela
     print("\n 0 1 2 3 4 5 6")
     print("---------------")
     for linha in tabuleiro:
         print("|" + "|".join([str(p) if p != VAZIO else " " for p in linha]) + "|")
     print("---------------")
+
+# Salva as jogadas em arquivos de texto
+def registrar_jogada(coluna, peca):
+    if peca == JOGADOR:
+        HISTORICO_JOGADOR.append(coluna)
+        with open(ARQUIVO_JOGADOR, "w", encoding="utf-8") as f:
+            f.write(",".join(str(c) for c in HISTORICO_JOGADOR))
+    else:
+        HISTORICO_IA.append(coluna)
+        with open(ARQUIVO_IA, "w", encoding="utf-8") as f:
+            f.write(",".join(str(c) for c in HISTORICO_IA))
 
 def movimento_valido(tabuleiro, coluna):
     return tabuleiro[0][coluna] == VAZIO
@@ -59,7 +76,6 @@ def obter_colunas_validas(tabuleiro):
     return [col for col in range(COLUNAS) if movimento_valido(tabuleiro, col)]
 
 def tabuleiro_esta_vazio(tabuleiro):
-    # Otimização: se a base está vazia, tudo está vazio
     for c in range(COLUNAS):
         if tabuleiro[LINHAS - 1][c] != VAZIO:
             return False
@@ -71,7 +87,7 @@ TABELA_IA_COMECA = [
     [2,  3,  4,  5,  4,  3, 2], # Índice 0 (Linha 6 - Par): Pesos reduzidos
     [5,  7,  9, 12,  9,  7, 5], # Índice 1 (Linha 5 - Ímpar): Pesos aumentados
     [4,  6,  9, 10,  9,  6, 4], # Índice 2 (Linha 4 - Par): Pesos reduzidos
-    [7, 10, 13, 16, 13, 10, 7],# Índice 3 (Linha 3 - Ímpar): Pesos fortemente aumentados
+    [7, 10, 13, 16, 13, 10, 7], # Índice 3 (Linha 3 - Ímpar): Pesos fortemente aumentados
     [3,  5,  7,  8,  7,  5, 3], # Índice 4 (Linha 2 - Par): Pesos reduzidos
     [5,  7,  9, 20,  9,  7, 5]  # Índice 5 (Linha 1 - Ímpar): D1 (coluna 3) com peso esmagador (20)
 ]
@@ -172,11 +188,19 @@ def iniciar_jogo():
             if 0 <= col <= 6 and movimento_valido(tabuleiro, col):
                 linha = obter_linha_valida(tabuleiro, col)
                 jogar_peca(tabuleiro, linha, col, JOGADOR)
+                registrar_jogada(col, JOGADOR)
                 
                 if verificar_vitoria(tabuleiro, JOGADOR):
                     imprimir_tabuleiro(tabuleiro)
                     print("\nVocê venceu!")
                     fim_de_jogo = True
+                    break
+
+                if len(obter_colunas_validas(tabuleiro)) == 0:
+                    imprimir_tabuleiro(tabuleiro)
+                    print("\nEmpate! O tabuleiro está cheio.")
+                    fim_de_jogo = True
+                    break
                 
                 turno += 1
                 turno = turno % 2
@@ -195,11 +219,19 @@ def iniciar_jogo():
             if movimento_valido(tabuleiro, coluna):
                 linha = obter_linha_valida(tabuleiro, coluna)
                 jogar_peca(tabuleiro, linha, coluna, IA)
+                registrar_jogada(coluna, IA)
                 
                 if verificar_vitoria(tabuleiro, IA):
                     imprimir_tabuleiro(tabuleiro)
                     print("\nA IA venceu!")
                     fim_de_jogo = True
+                    break
+
+                if len(obter_colunas_validas(tabuleiro)) == 0:
+                    imprimir_tabuleiro(tabuleiro)
+                    print("\nEmpate! O tabuleiro está cheio.")
+                    fim_de_jogo = True
+                    break
                     
                 turno += 1
                 turno = turno % 2

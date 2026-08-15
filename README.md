@@ -1,4 +1,4 @@
-# connect4-minimax
+# Trabalhos N1 da disciplina de IA (UFAC 2026.1)
 
 Equipe:
 João Vitor Ferreira da Silva
